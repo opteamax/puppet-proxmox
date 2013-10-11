@@ -1,0 +1,10 @@
+#!/bin/bash
+# Used to email a list of VMs that are currently running on a node.
+# put this in the crontab
+#  0 7 * * * /root/bin/vmlist | mail -s "[proxmox] Virtual Machine List `hostname`" root@cs.uchicago.edu
+
+echo "===== `hostname` ====="
+echo "kvm"
+/usr/sbin/qm list 2>&1
+echo "openvz"
+/usr/sbin/vzlist -a 2>&1

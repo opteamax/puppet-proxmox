@@ -1,0 +1,4 @@
+# m h  dom mon dow   command
+*/10 * * * *    /root/bin/cron-disk-alert
+0 7 * * *       /root/bin/cron-vmlist | mail -s "[proxmox] Virtual Machine List `hostname`" root@cs.uchicago.edu
+

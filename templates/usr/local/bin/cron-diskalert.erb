@@ -1,0 +1,39 @@
+#!/bin/bash
+# Script to check disk usage percentage on critical mount points on proxmox nodes.
+# Put the following in your crontab and set to run every 10 min.
+# * */10 * * * /root/bin/cron-disk-alert
+
+
+HOSTNAME=`hostname -f`
+DATE=`date +%F`
+QUOTA=90
+SEND=0
+MOUNTPOINTS='/ /var/lib/vz /backup'
+BODY='/tmp/diskalert'
+EMAIL='techstaff@cs.uchicago.edu'
+
+for m in $MOUNTPOINTS
+do
+   PCT=`df -h $m | grep -v Filesystem | awk '{print $5}' | sed 's/%//'`
+   if [ $PCT -gt $QUOTA ]; then
+      SEND=1
+   fi
+done
+
+if [ $SEND == 1 ]; then
+   echo "The following mount point(s) are above $QUOTA% use" > $BODY
+   echo "Figure out what is causing the mount point to fill." >> $BODY
+   echo "If you don't the drive could file and cause I/O errors" >> $BODY
+   echo "on all VMs on $HOSTNAME." >> $BODY
+
+   for m in $MOUNTPOINTS
+   do
+      PCT=`df -h $m | grep -v Filesystem | awk '{print $5}' | sed 's/%//'`
+      if [ $PCT -gt $QUOTA ]; then
+         df -h $m | grep -v Filesystem >> $BODY
+      fi
+   done
+   cat $BODY | mail -s "[proxmox] disk usage `hostname`" $EMAIL
+   rm $BODY
+fi
+
